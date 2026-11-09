@@ -156,6 +156,7 @@ void ee_runner(SystemThreadInterface& iface) {
   // Allocate Main RAM. Must have execute enabled.
   // Apple Silicon uses separate writable and executable mappings for EE memory.
   if (EE_MEM_LOW_MAP) {
+#ifdef MAP_32BIT
     g_ee_main_mem =
         (u8*)mmap((void*)0x10000000, EE_MAIN_MEM_SIZE, PROT_EXEC | PROT_READ | PROT_WRITE,
 #ifdef __APPLE__
@@ -163,6 +164,9 @@ void ee_runner(SystemThreadInterface& iface) {
                   MAP_ANONYMOUS | MAP_32BIT | MAP_PRIVATE, 0, 0);
 #else
                   MAP_ANONYMOUS | MAP_32BIT | MAP_PRIVATE | MAP_POPULATE, 0, 0);
+#endif
+#else
+    static_assert(!EE_MEM_LOW_MAP, "EE_MEM_LOW_MAP requires MAP_32BIT, which only x86-64 has");
 #endif
   } else {
 #if defined(__APPLE__) && defined(__aarch64__)

@@ -1,14 +1,3 @@
-# Set a more convenient ARM flag
-# match the __aarch64__ source guards
-string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" OG_PROCESSOR_LOWER)
-if(OG_PROCESSOR_LOWER MATCHES "^(arm64|aarch64)$")
-    set(ARM64_ARCH TRUE)
-    message(STATUS "ARM64 architecture detected (${CMAKE_SYSTEM_PROCESSOR})")
-else()
-    set(ARM64_ARCH FALSE)
-    message(STATUS "Non-ARM64 architecture detected (${CMAKE_SYSTEM_PROCESSOR})")
-endif()
-
 if(ARM64_ARCH)
     # Add your ARM64-specific configuration or build options here
     set(OG_ASM_FUNCS_FILE kernel/asm_funcs_arm64.s)
@@ -18,7 +7,8 @@ if(ARM64_ARCH)
     if(APPLE)
         set_source_files_properties(${OG_ASM_FUNCS_FILE} PROPERTIES COMPILE_FLAGS "-arch arm64 -g")
     else()
-        set_source_files_properties(${OG_ASM_FUNCS_FILE} PROPERTIES COMPILE_FLAGS "-g")
+        # the .s file has no .note.GNU-stack section, which GNU ld treats as needing an executable stack
+        set_source_files_properties(${OG_ASM_FUNCS_FILE} PROPERTIES COMPILE_FLAGS "-g -Wa,--noexecstack")
     endif()
 else()
     set(OG_ASM_FUNCS_FILE kernel/asm_funcs_x86_64.asm)

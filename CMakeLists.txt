@@ -48,6 +48,20 @@ if (APPLE)
     set(CMAKE_OSX_SYSROOT "${MACOSX_SYSROOT}" CACHE PATH "macOS SDK path" FORCE)
 endif()
 
+# Target ISA flags: AVX on x86-64, CRC32 instructions (common/util/crc32.h) on ARM64.
+# ARM64 Linux makes plain `char` unsigned; the runtime assumes signed `char` like x86-64 and
+# Apple ARM64, so match them.
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" OG_PROCESSOR_LOWER)
+if(OG_PROCESSOR_LOWER MATCHES "^(arm64|aarch64)$")
+    set(ARM64_ARCH TRUE)
+    set(OG_ARCH_FLAGS "-march=armv8-a+crc -fsigned-char")
+    message(STATUS "ARM64 architecture detected (${CMAKE_SYSTEM_PROCESSOR})")
+else()
+    set(ARM64_ARCH FALSE)
+    set(OG_ARCH_FLAGS "-mavx")
+    message(STATUS "Non-ARM64 architecture detected (${CMAKE_SYSTEM_PROCESSOR})")
+endif()
+
 # Setup compiler flags
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message(STATUS "Clang Detected - Setting Defaults")
@@ -56,7 +70,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         -fcxx-exceptions \
         -fexceptions \
         -fdiagnostics-color=always \
-        -mavx \
+        ${OG_ARCH_FLAGS} \
         -Wall \
         -Wno-c++11-narrowing \
         -Wno-c++98-compat \
@@ -111,7 +125,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wshadow \
         -Wsign-promo \
         -fdiagnostics-color=always \
-        -mavx")
+        ${OG_ARCH_FLAGS}")
 
     # additional c++ flags for release mode for our projects
     if(CMAKE_BUILD_TYPE MATCHES "Release")

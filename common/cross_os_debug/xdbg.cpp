@@ -211,6 +211,13 @@ bool detach_and_resume(const ThreadID& tid) {
  * Get all registers now. Must be attached and stopped
  */
 bool get_regs_now(const ThreadID& tid, Regs* out) {
+#ifndef __x86_64__
+  // Regs holds the x86-64 register file; ARM64 register access is not implemented
+  (void)tid;
+  (void)out;
+  printf("[Debugger] Register access is only implemented for x86-64\n");
+  return false;
+#else
   user regs = {};
   if (ptrace(PTRACE_GETREGS, tid.id, nullptr, &regs) < 0) {
     printf("[Debugger] Failed to PTRACE_GETREGS %s\n", strerror(errno));
@@ -237,12 +244,19 @@ bool get_regs_now(const ThreadID& tid, Regs* out) {
 
   // todo, get fprs.
   return true;
+#endif
 }
 
 /*!
  * Set all registers now. Must be attached and stopped
  */
 bool set_regs_now(const ThreadID& tid, const Regs& out) {
+#ifndef __x86_64__
+  (void)tid;
+  (void)out;
+  printf("[Debugger] Register access is only implemented for x86-64\n");
+  return false;
+#else
   user regs = {};
   if (ptrace(PTRACE_GETREGS, tid.id, nullptr, &regs) < 0) {
     printf("[Debugger] Failed to PTRACE_GETREGS %s\n", strerror(errno));
@@ -273,6 +287,7 @@ bool set_regs_now(const ThreadID& tid, const Regs& out) {
   }
   // todo, set fprs.
   return true;
+#endif
 }
 
 /*!
