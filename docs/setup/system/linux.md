@@ -6,6 +6,7 @@
   - [Arch](#arch)
   - [Fedora](#fedora)
   - [Compiling and Building](#compiling-and-building)
+  - [ARM64 (aarch64)](#arm64-aarch64)
 
 
 ## Packages
@@ -58,3 +59,19 @@ and run `cmake` (in a fresh build directory) with:
 ```sh
 cmake -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
 ```
+
+## ARM64 (aarch64)
+
+OpenGOAL builds natively on ARM64 Linux with the same packages and presets. `nasm` is only used by x86-64 builds and can be skipped.
+
+```sh
+cmake -B build --preset=Release-linux-clang
+cmake --build build --parallel $(nproc)
+./test.sh
+```
+
+`goalc` and the `extractor` generate code for the CPU they were built for, so an ARM64 build compiles the game to ARM64 code. Both accept `--instruction-set x86` or `--instruction-set arm64` to override this.
+
+ARM64 builds require a CPU with the ARMv8 CRC32 instructions, which almost every ARM64 core implements. The renderer requires OpenGL 4.3, which some ARM64 GPU drivers (for example on most Raspberry Pi and Mali devices) do not provide.
+
+The `goalc` debugger cannot read or write registers or disassemble code on ARM64 yet.

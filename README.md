@@ -52,7 +52,7 @@ Our objectives are:
 - try to match things from the original game and development as possible. For example, the original GOAL compiler supported live modification of code while the game is running, so we do the same, even though it's not required for just porting the game.
 - support modifications. It should be possible to make edits to the code without everything else breaking.
 
-At the moment we support **x86_64** on Windows, Linux and macOS (via Rosetta translation).  There are no plans to ever make a mobile release.
+At the moment we support **x86_64** on Windows, Linux and macOS, and **ARM64** on Linux and macOS.  There are no plans to ever make a mobile release.
 
 ### Current Status
 
