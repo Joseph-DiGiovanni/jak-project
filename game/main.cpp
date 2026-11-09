@@ -180,7 +180,10 @@ int main(int argc, char** argv) {
 
   // Figure out if the CPU has AVX2 to enable higher performance AVX2 versions of functions.
   setup_cpu_info();
-  // If the CPU doesn't have AVX, GOAL code won't work and we exit.
+  // x86-64 builds need AVX: if the CPU doesn't have it, GOAL code won't work and we exit.
+  // ARM64 builds generate ARM64 code and never use AVX, so this also skips the Rosetta check below
+  // for native Apple Silicon builds.
+#if defined(__x86_64__) || defined(_M_X64)
   if (!get_cpu_info().has_avx) {
 // Check if we are on a modern enough version of macOS so that AVX can be
 // emulated via rosetta
@@ -203,6 +206,17 @@ int main(int argc, char** argv) {
     return -1;
 #endif
   }
+#endif
+#if defined(__aarch64__)
+  // ARM64 builds use the CRC32 instructions, which are optional in ARMv8.0.
+  if (!get_cpu_info().has_crc32) {
+    lg::info("Your CPU does not support the ARMv8 CRC32 instructions, which are required.");
+    dialogs::create_error_message_dialog(
+        "Unmet Requirements",
+        "Your CPU does not support the ARMv8 CRC32 instructions, which are required for OpenGOAL.");
+    return -1;
+  }
+#endif
 
   // set up file paths for resources. This is the full repository when developing, and the data
   // directory (a subset of the full repo) in release versions

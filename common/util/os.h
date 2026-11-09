@@ -12,6 +12,8 @@ struct CpuInfo {
   bool has_avx = false;
   bool has_avx2 = false;
   bool has_neon = false;
+  // ARM64 CRC32 instructions, required by ARM64 builds (common/util/crc32.h)
+  bool has_crc32 = false;
 
   std::string brand;
   std::string model;

@@ -128,11 +128,11 @@ void setup_cpu_info_linux(CpuInfo& info) {
       info.model = value;
     }
   }
-#if defined(__aarch64__)
+#if defined(__linux__) && defined(__aarch64__)
   info.brand = "ARM";
-#ifdef HWCAP_ASIMD
-  info.has_neon = getauxval(AT_HWCAP) & HWCAP_ASIMD;
-#endif
+  const auto hwcap = getauxval(AT_HWCAP);
+  info.has_neon = hwcap & HWCAP_ASIMD;
+  info.has_crc32 = hwcap & HWCAP_CRC32;
 #endif
 
 #if defined(__x86_64__)
@@ -176,6 +176,8 @@ void setup_cpu_info_macos(CpuInfo& info) {
     info.model = buf;
   }
   info.has_neon = true;
+  // every Apple ARM64 CPU implements CRC32
+  info.has_crc32 = true;
 #endif
 }
 
@@ -203,6 +205,7 @@ void setup_cpu_info() {
   printf(" AVX  : %s\n", gCpuInfo.has_avx ? "true" : "false");
   printf(" AVX2 : %s\n", gCpuInfo.has_avx2 ? "true" : "false");
   printf(" NEON : %s\n", gCpuInfo.has_neon ? "true" : "false");
+  printf(" CRC32: %s\n", gCpuInfo.has_crc32 ? "true" : "false");
   fflush(stdout);
 
   gCpuInfo.initialized = true;
