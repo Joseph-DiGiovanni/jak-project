@@ -96,6 +96,18 @@ jobs:
       uploadArtifacts: true
     secrets: inherit
 
+  build_linux_arm:
+    needs:
+      - cut_release
+    name: "🐧 Linux ARM"
+    uses: ./.github/workflows/linux-build-clang.yaml
+    with:
+      cmakePreset: "Release-linux-clang-static"
+      cachePrefix: "static-arm"
+      uploadArtifacts: true
+      runner: "ubuntu-22.04-arm"
+    secrets: inherit
+
   # macOS
   build_macos_intel:
     needs:
@@ -126,6 +138,7 @@ jobs:
       - cut_release
       - build_windows_clang
       - build_linux_clang
+      - build_linux_arm
       - build_macos_intel
       - build_macos_arm
     name: "Upload Artifacts"
@@ -187,12 +200,32 @@ jobs:
           chmod +x ./ci-artifacts/opengoal-macos-static-arm/lsp/lsp
           cp ./ci-artifacts/opengoal-macos-static-arm/lsp/lsp ./ci-artifacts/final/opengoal-lsp-macos-arm-${TAG_VAL}.bin
 
+      # Uploaded by its own step after the other assets. Launchers up to v2.11.2 take the first
+      # release asset whose name contains "linux", so the x86-64 archive has to come first.
+      - name: Prepare ARM Linux Build Assets
+        run: |
+          mkdir -p ./ci-artifacts/linux-arm ./ci-artifacts/final-linux-arm
+          ./.github/scripts/releases/extract_build_unix.sh ./ci-artifacts/linux-arm ./ci-artifacts/opengoal-linux-static-arm ./
+          pushd ci-artifacts/linux-arm
+          TAG_VAL=${{ needs.cut_release.outputs.new_tag }}
+          tar czf ../final-linux-arm/opengoal-linux-arm-${TAG_VAL}.tar.gz .
+          popd
+          chmod +x ./ci-artifacts/opengoal-linux-static-arm/lsp/lsp
+          cp ./ci-artifacts/opengoal-linux-static-arm/lsp/lsp ./ci-artifacts/final-linux-arm/opengoal-lsp-linux-arm-${TAG_VAL}.bin
+
       - name: Upload Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_VAL=${{ needs.cut_release.outputs.new_tag }}
           gh release upload "${TAG_VAL}" ${{ github.WORKSPACE }}/ci-artifacts/final/* --repo open-goal/jak-project --clobber
+
+      - name: Upload ARM Linux Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_VAL=${{ needs.cut_release.outputs.new_tag }}
+          gh release upload "${TAG_VAL}" ${{ github.WORKSPACE }}/ci-artifacts/final-linux-arm/* --repo open-goal/jak-project --clobber
 
       - name: Publish Release
         env:

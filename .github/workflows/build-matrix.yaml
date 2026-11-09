@@ -44,6 +44,16 @@ jobs:
       cachePrefix: ""
     secrets: inherit
 
+  # uses the static preset so CI covers what the release pipeline ships
+  build_linux_arm:
+    name: "🐧 Linux ARM"
+    uses: ./.github/workflows/linux-build-clang.yaml
+    with:
+      cmakePreset: "Release-linux-clang-static"
+      cachePrefix: ""
+      runner: "ubuntu-22.04-arm"
+    secrets: inherit
+
   # MacOS
   build_macos_intel:
     name: "🍎 MacOS"
