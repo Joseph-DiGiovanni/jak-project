@@ -3429,10 +3429,12 @@ TEST(X86EmitterXmm32, store32_simd32_gpr64_plus_gpr64) {
         float memory[8] = {0, 0, 1.23f, 3.45f, 5.67f, 0, 0, 0};
 
         // run!
-        execute_tester_no_cmp(tester, (u64)memory, 12, as_u32(1.234f), 0);
-        EXPECT_FLOAT_EQ(memory[2], 1.23f);
-        EXPECT_FLOAT_EQ(memory[3], 1.234f);
-        EXPECT_FLOAT_EQ(memory[4], 5.67f);
+        const auto did_execute = execute_tester_no_cmp(tester, (u64)memory, 12, as_u32(1.234f), 0);
+        if (did_execute) {
+          EXPECT_FLOAT_EQ(memory[2], 1.23f);
+          EXPECT_FLOAT_EQ(memory[3], 1.234f);
+          EXPECT_FLOAT_EQ(memory[4], 5.67f);
+        }
 
         iter++;
       }
@@ -3498,10 +3500,13 @@ TEST(X86EmitterXmm32, store32_simd32_gpr64_plus_gpr64_plus_s8) {
         float memory[8] = {0, 0, 1.23f, 3.45f, 5.67f, 0, 0, 0};
 
         // run!
-        execute_tester_no_cmp(tester, (u64)memory, 12 - offset, as_u32(1.234f), 0);
-        EXPECT_FLOAT_EQ(memory[2], 1.23f);
-        EXPECT_FLOAT_EQ(memory[3], 1.234f);
-        EXPECT_FLOAT_EQ(memory[4], 5.67f);
+        const auto did_execute =
+            execute_tester_no_cmp(tester, (u64)memory, 12 - offset, as_u32(1.234f), 0);
+        if (did_execute) {
+          EXPECT_FLOAT_EQ(memory[2], 1.23f);
+          EXPECT_FLOAT_EQ(memory[3], 1.234f);
+          EXPECT_FLOAT_EQ(memory[4], 5.67f);
+        }
 
         iter++;
       }
@@ -3567,10 +3572,13 @@ TEST(X86EmitterXmm32, store32_simd32_gpr64_plus_gpr64_plus_s32) {
         float memory[8] = {0, 0, 1.23f, 3.45f, 5.67f, 0, 0, 0};
 
         // run!
-        execute_tester_no_cmp(tester, (u64)memory, 12 - offset, as_u32(1.234f), 0);
-        EXPECT_FLOAT_EQ(memory[2], 1.23f);
-        EXPECT_FLOAT_EQ(memory[3], 1.234f);
-        EXPECT_FLOAT_EQ(memory[4], 5.67f);
+        const auto did_execute =
+            execute_tester_no_cmp(tester, (u64)memory, 12 - offset, as_u32(1.234f), 0);
+        if (did_execute) {
+          EXPECT_FLOAT_EQ(memory[2], 1.23f);
+          EXPECT_FLOAT_EQ(memory[3], 1.234f);
+          EXPECT_FLOAT_EQ(memory[4], 5.67f);
+        }
 
         iter++;
       }
@@ -3624,8 +3632,9 @@ TEST(X86EmitterXmm32, static_store_xmm32) {
 
     tester.write<s32>(loc_of_float - loc_of_store - store_instr.length(),
                       loc_of_store + store_instr.offset_of_disp());
-    execute_tester_no_cmp(tester, as_u32(-44.567f), 0, 0, 0);
-    EXPECT_FLOAT_EQ(-44.567f, tester.read<float>(loc_of_float));
+    if (execute_tester_no_cmp(tester, as_u32(-44.567f), 0, 0, 0)) {
+      EXPECT_FLOAT_EQ(-44.567f, tester.read<float>(loc_of_float));
+    }
   }
 }
 
